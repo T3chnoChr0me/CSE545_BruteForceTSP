@@ -80,7 +80,7 @@ void print_list(struct List *list) {    //Takes a pointer to the list to print
     ptr = ptr->next;      //Navigate to the next node
   }
   printf("\n");
-  printf("The list now has %d elements.\n", list->size);
+  //printf("The list now has %d elements.\n", list->size);
 
 }
 
@@ -157,33 +157,42 @@ double permutation_distance(struct Node *node) {
   return distance;
 }
 
-double permutations(struct Node *node, struct List *list) {
+double permutations(struct Node *current, struct List *list) {
   double distance = 0.0;
   double shortest = 0.0;
 
-  if (list->size == 1) { return 0; }
-
-  while (node->next != NULL) {
-    permutations(node->next, list);
-    swap_nodes(node, node->next, list);
-  }
   
-  if (node->next == NULL){
+  if (current->next == NULL){
     distance = permutation_distance(list->head);
 
     if (distance < shortest) {
       shortest = distance;
       printf("New Shortest Distance: %lf\n", shortest);
       print_list(list);
-    }
-
+    } 
+    //printf("current->next == NULL, current value = %d\n", current->id);
     //compare distance between shortest and current and update if necessary
     //Swap nodes with previous
+    return 0.0;
+  }
+  
+  if (list->size == 1) { return 0; }
+
+  //struct Node *node = NULL;
+  //node = current;
+
+  for (struct Node *node = current; node != NULL; node = node->next) {
+    //printf("Swapping nodes\n");
+    swap_nodes(current, node, list);
+    print_list(list);
+    permutations(node->next, list);
+    //printf("Swapping nodes back\n");
+    swap_nodes(current, node, list);
+    print_list(list);
+
   }
 
-  
-
-  return 0.0;
+  return shortest;
 }
 
 void bruteForce(struct List *list) {
@@ -208,7 +217,7 @@ int main(int argc, char *argv[]) {              //Main function takes command li
     FILE *file_ptr = NULL;
 
     // Opening file in reading mode
-    file_ptr = fopen("nodes3.tsp", "r");
+    file_ptr = fopen("nodes5.tsp", "r");
 
     if (file_ptr == NULL) {
         printf("file can't be opened \n");
@@ -218,7 +227,7 @@ int main(int argc, char *argv[]) {              //Main function takes command li
     //printf("Contents of the File are:\n");   
 
     while(fscanf(file_ptr, "%d %lf %lf", &id, &x, &y) == 3) {
-        printf("Node: %d     \tx: %lf\ty: %lf\n", id, x, y);
+        //printf("Node: %d     \tx: %lf\ty: %lf\n", id, x, y);
         tmp = create_node(id);
         tmp->x = x;
         tmp->y = y;
@@ -226,12 +235,13 @@ int main(int argc, char *argv[]) {              //Main function takes command li
         insert_tail(tmp, list);
     }
 
-    print_list(list);
+    //print_list(list);
 
-    bruteForce(list);
+    //bruteForce(list);
 
-    //struct Node *node1 = list->head->next->next->next->next;
-    //struct Node *node2 = list->tail->prev->prev->prev->prev;
+    struct Node *node1 = list->head;
+    struct Node *node2 = list->head->next;
+    printf("Distance: %lf", calculate_distance(node1, node2));
     //swap_nodes(node1, node2, list);
 
     //print_list(list);
