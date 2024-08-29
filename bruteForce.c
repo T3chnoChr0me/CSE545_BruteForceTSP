@@ -4,6 +4,9 @@
 #include <errno.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
+
+double shortest = 0.0;
 
 struct Node {                 //Basic component of the list each list has: a name value, a unique ID, a pointer to the next and previous node
   int id;
@@ -18,6 +21,10 @@ struct List {               //A list contains pointers to the head and tail node
   struct Node *tail;
   int size;
 };
+
+struct List *shortestList = NULL;
+
+FILE *out_ptr = NULL;
 
 struct Node *create_node(int id) {        //Takes a pointer to a character string, and an id
   struct Node *node = malloc(sizeof(struct Node));    //node is a pointer to the memory space allocated by malloc which allocates the enough memory space for the node component
@@ -74,12 +81,12 @@ void print_list(struct List *list) {    //Takes a pointer to the list to print
   struct Node *ptr = list->head;      //creates a pointer to a node starting at the head of the list
   while (ptr != NULL) {         //While there are nodes to step through
     if (ptr != list->head) {      //If the node is not the head node, print "->"
-      printf("->");
+      fprintf(out_ptr, "->");
     }
-    printf("(%d)", ptr->id);   //Print the name and id of the node
+    fprintf(out_ptr, "(%d)", ptr->id);   //Print the name and id of the node
     ptr = ptr->next;      //Navigate to the next node
   }
-  printf("\n");
+  fprintf(out_ptr, "\n");
   //printf("The list now has %d elements.\n", list->size);
 
 }
@@ -103,6 +110,26 @@ void destroy_list(struct List *list) {    //Takes a pointer to a list
     free(tmp);          //Free the temporary node
   }
   free(list);           //After all nodes are freed, free the space for the list
+}
+
+void copy_list(struct List *list){
+  if (shortestList != NULL) { destroy_list(shortestList); }
+
+  shortestList = create_list();
+  struct Node *tmp = NULL;
+  struct Node *ptr = list->head;      //creates a pointer to a node starting at the head of the list
+  
+  while (ptr != NULL) {         //While there are nodes to step through
+    tmp = create_node(ptr->id);
+    tmp->x = ptr->x;
+    tmp->y = ptr->y;
+
+    insert_tail(tmp, shortestList);
+    ptr = ptr->next;      //Navigate to the next node
+  }
+  //printf("\n");
+  //printf("The list now has %d elements.\n", list->size);
+
 }
 
 void swap_nodes(struct Node *node1, struct Node *node2, struct List *list) {
@@ -148,32 +175,43 @@ double permutation_distance(struct Node *node) {
   double distance = 0.0;
   struct Node *tmp = NULL;
   tmp = node;
+  //printf("Distance for this permutation: ");
 
   while (tmp->next != NULL){
+    //printf("Distance between %d & %d:\n", tmp->id, tmp->next->id);
     distance += calculate_distance(tmp, tmp->next);
     tmp = tmp->next;
   }
 
+  if (tmp->next == NULL){
+    //printf("Distance between %d & %d:\n", tmp->id, node->id);
+    distance += calculate_distance(tmp, node);
+  }
+
+  //printf("%lf\n", distance);
   return distance;
 }
 
 double permutations(struct Node *current, struct List *list) {
   double distance = 0.0;
-  double shortest = 0.0;
-
   
   if (current->next == NULL){
     distance = permutation_distance(list->head);
+    //printf("A new challenger approaches: %lf\n", distance);
 
     if (distance < shortest) {
       shortest = distance;
-      printf("New Shortest Distance: %lf\n", shortest);
-      print_list(list);
-    } 
+      //printf("New Shortest Distance: %lf\n", shortest);
+      //print_list(list);
+      copy_list(list);
+    } else if (shortest == 0.0){
+      copy_list(list);
+      shortest = distance;
+    }
     //printf("current->next == NULL, current value = %d\n", current->id);
     //compare distance between shortest and current and update if necessary
     //Swap nodes with previous
-    return 0.0;
+    return shortest;
   }
   
   if (list->size == 1) { return 0; }
@@ -184,25 +222,27 @@ double permutations(struct Node *current, struct List *list) {
   for (struct Node *node = current; node != NULL; node = node->next) {
     //printf("Swapping nodes\n");
     swap_nodes(current, node, list);
-    print_list(list);
+    //print_list(list);
     permutations(node->next, list);
     //printf("Swapping nodes back\n");
     swap_nodes(current, node, list);
-    print_list(list);
+    //print_list(list);
 
   }
-
+  //copy_list(list);
   return shortest;
 }
 
 void bruteForce(struct List *list) {
 
-  double shortest = 0.0;
+  //printf("%lf\n", permutations(list->head, list));
+
 
   shortest = permutations(list->head, list);
 
-  printf("The shortest distance is %lf\n", shortest);
-  printf("The recommended path of travel is:\n");
+  fprintf(out_ptr, "The shortest distance is %lf\n", shortest);
+  fprintf(out_ptr, "The recommended path of travel is:\n");
+  print_list(shortestList);
 
 }
 
@@ -211,50 +251,66 @@ int main(int argc, char *argv[]) {              //Main function takes command li
     struct Node *tmp = NULL;                  //create a temporary node pointer and set to 
     int id = 0;
     double x,y = 0;
-    //char *string = NULL;
+    char arr[14][20] = {"nodes3.tsp", "Random4.tsp", "nodes5.tsp", "Random5.tsp", "Random6.tsp", "nodes7.tsp", "Random7.tsp",
+       "Random8.tsp", "Random9.tsp", "nodes10.tsp", "Random10.tsp", "Random11.tsp", "Random12.tsp", "nodes20.tsp"};
 
-    // Opening file
-    FILE *file_ptr = NULL;
+    out_ptr = fopen("bruteForceOutput", "w");
 
-    // Opening file in reading mode
-    file_ptr = fopen("nodes5.tsp", "r");
+    if (out_ptr == NULL) {
+      printf("file can't be opened \n");
+      return EXIT_FAILURE;
+    }
+    
+    for (int i = 0; i < 14; i++) {
+      double startingClock = clock();
+      
+      // Opening file
+      FILE *file_ptr = NULL;
 
-    if (file_ptr == NULL) {
-        printf("file can't be opened \n");
-        return EXIT_FAILURE;
+      // Opening file in reading mode
+      file_ptr = fopen(arr[i], "r");
+
+      if (file_ptr == NULL) {
+          printf("file can't be opened \n");
+          return EXIT_FAILURE;
+      }
+
+      //printf("Contents of the File are:\n");   
+
+      while(fscanf(file_ptr, "%d %lf %lf", &id, &x, &y) == 3) {
+          //printf("Node: %d     \tx: %lf\ty: %lf\n", id, x, y);
+          tmp = create_node(id);
+          tmp->x = x;
+          tmp->y = y;
+
+          insert_tail(tmp, list);
+      }
+
+      //print_list(list);
+
+      bruteForce(list);
+
+      //struct Node *node1 = list->head;
+      //struct Node *node2 = list->head->next;
+      //printf("Distance: %lf", calculate_distance(node1, node2));
+      //swap_nodes(node1, node2, list);
+
+      //print_list(list);
+
+      //find_shortest(list);
+
+      //print_coordinates(list);
+      
+
+      destroy_list(list);
+
+      // Closing the file
+      fclose(file_ptr);
+
+      double finishingClock = clock();
+      printf("Program run time: %lf seconds\n", (finishingClock - startingClock) / CLOCKS_PER_SEC);
     }
 
-    //printf("Contents of the File are:\n");   
-
-    while(fscanf(file_ptr, "%d %lf %lf", &id, &x, &y) == 3) {
-        //printf("Node: %d     \tx: %lf\ty: %lf\n", id, x, y);
-        tmp = create_node(id);
-        tmp->x = x;
-        tmp->y = y;
-
-        insert_tail(tmp, list);
-    }
-
-    //print_list(list);
-
-    //bruteForce(list);
-
-    struct Node *node1 = list->head;
-    struct Node *node2 = list->head->next;
-    printf("Distance: %lf", calculate_distance(node1, node2));
-    //swap_nodes(node1, node2, list);
-
-    //print_list(list);
-
-    //find_shortest(list);
-
-    //print_coordinates(list);
-    
-
-    destroy_list(list);
-
-    // Closing the file
-    fclose(file_ptr);
-    
+    fclose(out_ptr);
     return 0;
 }
