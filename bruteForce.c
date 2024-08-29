@@ -24,7 +24,7 @@ struct List {               //A list contains pointers to the head and tail node
 
 struct List *shortestList = NULL;
 
-FILE *out_ptr = NULL;
+//FILE *out_ptr = NULL;
 
 struct Node *create_node(int id) {        //Takes a pointer to a character string, and an id
   struct Node *node = malloc(sizeof(struct Node));    //node is a pointer to the memory space allocated by malloc which allocates the enough memory space for the node component
@@ -81,12 +81,12 @@ void print_list(struct List *list) {    //Takes a pointer to the list to print
   struct Node *ptr = list->head;      //creates a pointer to a node starting at the head of the list
   while (ptr != NULL) {         //While there are nodes to step through
     if (ptr != list->head) {      //If the node is not the head node, print "->"
-      fprintf(out_ptr, "->");
+      printf("->");
     }
-    fprintf(out_ptr, "(%d)", ptr->id);   //Print the name and id of the node
+    printf("(%d)", ptr->id);   //Print the name and id of the node
     ptr = ptr->next;      //Navigate to the next node
   }
-  fprintf(out_ptr, "\n");
+  printf("\n");
   //printf("The list now has %d elements.\n", list->size);
 
 }
@@ -240,8 +240,8 @@ void bruteForce(struct List *list) {
 
   shortest = permutations(list->head, list);
 
-  fprintf(out_ptr, "The shortest distance is %lf\n", shortest);
-  fprintf(out_ptr, "The recommended path of travel is:\n");
+  printf("The shortest distance is %lf\n", shortest);
+  printf("The recommended path of travel is:\n");
   print_list(shortestList);
 
 }
@@ -251,24 +251,24 @@ int main(int argc, char *argv[]) {              //Main function takes command li
     struct Node *tmp = NULL;                  //create a temporary node pointer and set to 
     int id = 0;
     double x,y = 0;
-    char arr[14][20] = {"nodes3.tsp", "Random4.tsp", "nodes5.tsp", "Random5.tsp", "Random6.tsp", "nodes7.tsp", "Random7.tsp",
-       "Random8.tsp", "Random9.tsp", "nodes10.tsp", "Random10.tsp", "Random11.tsp", "Random12.tsp", "nodes20.tsp"};
+    //char arr[14][20] = {"nodes3.tsp", "Random4.tsp", "nodes5.tsp", "Random5.tsp", "Random6.tsp", "nodes7.tsp", "Random7.tsp",
+    //   "Random8.tsp", "Random9.tsp", "nodes10.tsp", "Random10.tsp", "Random11.tsp", "Random12.tsp", "nodes20.tsp"};
 
-    out_ptr = fopen("bruteForceOutput", "w");
+    //out_ptr = fopen("bruteForceOutput", "w");
 
-    if (out_ptr == NULL) {
-      printf("file can't be opened \n");
-      return EXIT_FAILURE;
-    }
+    //if (out_ptr == NULL) {
+    //  printf("file can't be opened \n");
+    //  return EXIT_FAILURE;
+    //}
     
-    for (int i = 0; i < 14; i++) {
+    //for (int i = 0; i < 14; i++) { 
       double startingClock = clock();
       
       // Opening file
       FILE *file_ptr = NULL;
 
       // Opening file in reading mode
-      file_ptr = fopen(arr[i], "r");
+      file_ptr = fopen("Random12.tsp", "r");
 
       if (file_ptr == NULL) {
           printf("file can't be opened \n");
@@ -309,8 +309,8 @@ int main(int argc, char *argv[]) {              //Main function takes command li
 
       double finishingClock = clock();
       printf("Program run time: %lf seconds\n", (finishingClock - startingClock) / CLOCKS_PER_SEC);
-    }
+    //}
 
-    fclose(out_ptr);
+    //fclose(out_ptr);
     return 0;
 }
